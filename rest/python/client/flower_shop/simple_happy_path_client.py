@@ -794,7 +794,7 @@ Note:
 
     # logic.
 
-    target_handler = "mock_payment_handler"
+    target_handler = "google_pay"
 
     if not any(h["id"] == target_handler for h in supported_handlers):
       logger.error("Merchant does not support %s. Aborting.", target_handler)

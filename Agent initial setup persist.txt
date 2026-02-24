@@ -1,0 +1,53 @@
+Persisting setup
+
+Window 1:
+=========
+PS C:\Users\manas.singh> $BIN = "$env:USERPROFILE\bin"
+PS C:\Users\manas.singh> New-Item -ItemType Directory -Force -Path $BIN | Out-Null
+PS C:\Users\manas.singh> setx PATH "$($env:PATH);$BIN"
+
+SUCCESS: Specified value was saved.
+PS C:\Users\manas.singh>
+PS C:\Users\manas.singh> New-Item -ItemType Directory -Force -Path "D:\uvcache" | Out-Null
+PS C:\Users\manas.singh> setx UV_CACHE_DIR "D:\uvcache"
+
+SUCCESS: Specified value was saved.
+
+Window 2:
+=========
+PS C:\Users\manas.singh> $PY = "C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe"
+PS C:\Users\manas.singh> $BIN = "$env:USERPROFILE\bin"
+PS C:\Users\manas.singh>
+PS C:\Users\manas.singh> # 3) Create a python shim
+PS C:\Users\manas.singh> @"
+>> @echo off
+>> "$PY" %*
+>> "@ | Out-File -Encoding ASCII -FilePath "$BIN\python.cmd"
+PS C:\Users\manas.singh>
+PS C:\Users\manas.singh> # 4) Install uv to your *user* site (no admin)
+PS C:\Users\manas.singh> & $PY -m pip install --user uv
+Requirement already satisfied: uv in c:\users\manas.singh\appdata\local\packages\pythonsoftwarefoundation.python.3.13_qbz5n2kfra8p0\localcache\local-packages\python313\site-packages (0.10.2)
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe -m pip install --upgrade pip
+PS C:\Users\manas.singh>
+PS C:\Users\manas.singh> # 5) Create a uv shim that always calls python -m uv
+PS C:\Users\manas.singh> @"
+>> @echo off
+>> python -m uv %*
+>> "@ | Out-File -Encoding ASCII -FilePath "$BIN\uv.cmd"
+
+Window 3 - Verify on reboot:
+=========
+PS C:\Users\manas.singh> python --version
+Python 3.13.12
+PS C:\Users\manas.singh> uv --version
+uv 0.10.2 (a788db7e5 2026-02-10)
+
+Window 4 starting agents after reboot:
+========
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> uv run business_agent
+
+Window 5:
+========
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\chat-client> npm run dev

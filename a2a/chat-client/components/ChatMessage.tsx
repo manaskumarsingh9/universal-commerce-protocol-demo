@@ -22,7 +22,6 @@ import {
   Sender,
 } from '../types';
 import CheckoutComponent from './Checkout';
-import PaymentConfirmationComponent from './PaymentConfirmation';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import ProductCard from './ProductCard';
 import UserLogo from './UserLogo';
@@ -35,6 +34,8 @@ interface ChatMessageProps {
   onConfirmPayment?: (paymentInstrument: PaymentInstrument) => void;
   onCompletePayment?: (checkout: Checkout) => void;
   isLastCheckout?: boolean;
+  onUseDefaultDetails?: () => void;
+  onEditDetails?: () => void;
 }
 
 function TypingIndicator() {
@@ -62,14 +63,46 @@ function ChatMessageComponent({
   onAddToCart,
   onCheckout,
   onSelectPaymentMethod,
-  onConfirmPayment,
   onCompletePayment,
   isLastCheckout,
+  onUseDefaultDetails,
+  onEditDetails,
 }: ChatMessageProps) {
   const isUser = message.sender === Sender.USER;
 
   if (message.isLoading) {
     return <TypingIndicator />;
+  }
+
+  // Prompt for default details
+  if (message.showCustomerDetailsConfirmation && message.customerDetails && !isUser) {
+    const { firstName, lastName, email, address } = message.customerDetails;
+    return (
+      <div className="flex w-full my-2 justify-start">
+        <div className="ml-10 px-4 py-3 rounded-2xl shadow-sm bg-gray-200 text-gray-800 self-start inline-block">
+          Would you like to use the default details?
+          <p><strong>Name:</strong> {firstName} {lastName}</p>
+          <p><strong>Email:</strong> {email}</p>
+          <p><strong>Address:</strong> {address.street_address}, {address.address_locality}, {address.address_region} {address.postal_code}, {address.address_country}</p>
+          <div className="mt-2 flex space-x-2">
+            <button
+              type="button"
+              onClick={onUseDefaultDetails}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+            >
+              Yes, proceed
+            </button>
+            <button
+              type="button"
+              onClick={onEditDetails}
+              className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded text-sm"
+            >
+              No, update manually
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // User messages are handled separately
@@ -111,13 +144,6 @@ function ChatMessageComponent({
           <PaymentMethodSelector
             paymentMethods={message.paymentMethods}
             onSelect={onSelectPaymentMethod}
-          />
-        )}
-
-        {message.paymentInstrument && onConfirmPayment && (
-          <PaymentConfirmationComponent
-            paymentInstrument={message.paymentInstrument}
-            onConfirm={() => onConfirmPayment(message.paymentInstrument)}
           />
         )}
 
