@@ -61,10 +61,22 @@ export interface ChatMessage {
   text: string;
   products?: Product[];
   isLoading?: boolean;
-  paymentMethods?: PaymentMethod[];
-  isUserAction?: boolean;
-  checkout?: Checkout;
+  paymentMethods?: string[];
   paymentInstrument?: PaymentInstrument;
+  showCustomerDetailsConfirmation?: boolean;
+  customerDetails?: {
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    address: {
+      street_address: string;
+      extended_address: string | null;
+      address_locality: string;
+      address_region: string;
+      postal_code: string;
+      address_country: string;
+    };
+  };
 }
 
 

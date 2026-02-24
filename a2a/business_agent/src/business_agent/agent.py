@@ -15,7 +15,10 @@
 """UCP."""
 
 import logging
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from typing import Any
+
 from a2a.types import TaskState
 from a2a.utils import get_message_text
 from google.adk.agents import Agent
@@ -23,8 +26,8 @@ from google.adk.agents.callback_context import CallbackContext
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.tool_context import ToolContext
 from google.genai import types
-from ucp_sdk.models.schemas.shopping.types.buyer import Buyer
-from ucp_sdk.models.schemas.shopping.types.postal_address import PostalAddress
+from groq import Groq
+
 from .a2a_extensions import UcpExtension
 from .constants import (
     ADK_EXTENSIONS_STATE_KEY,
@@ -38,14 +41,46 @@ from .constants import (
 )
 from .payment_processor import MockPaymentProcessor
 from .store import RetailStore
+from ucp_sdk.models.schemas.shopping.types.buyer import Buyer
+from ucp_sdk.models.schemas.shopping.types.postal_address import PostalAddress
 
 
 store = RetailStore()
 mpp = MockPaymentProcessor()
 
+# Configure logging
+LOG_DIR = Path(__file__).parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+LOG_FILE = LOG_DIR / "agent.log"
+
+# Set up root logger to handle all messages
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+
+# Console handler (for INFO and higher messages to terminal)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_formatter = logging.Formatter("%(levelname)s: %(message)s")
+console_handler.setFormatter(console_formatter)
+root_logger.addHandler(console_handler)
+
+# File handler (for all DEBUG messages to a rotating file)
+file_handler = RotatingFileHandler(
+    LOG_FILE, maxBytes=1024 * 1024 * 5, backupCount=5
+)  # 5 MB, 5 backup files
+file_handler.setLevel(logging.DEBUG)
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+file_handler.setFormatter(file_formatter)
+root_logger.addHandler(file_handler)
+
+# Prevent duplicate logs from other handlers (e.g., gunicorn)
+root_logger.propagate = False
+
 
 def _create_error_response(message: str) -> dict:
-  return {"message": message, "status": "error"}
+    return {"message": message, "status": "error"}
 
 
 def search_shopping_catalog(tool_context: ToolContext, query: str) -> dict:
@@ -395,9 +430,35 @@ def after_tool_modifier(
 
     """
     extensions = tool_context.state.get(ADK_EXTENSIONS_STATE_KEY, [])
+    # Defensive logging: record tool responses (type and keys) to aid debugging unexpected responses
+    try:
+        tool_name = getattr(tool, "__name__", None) or getattr(tool, "name", str(tool))
+        if tool_response is None:
+            logging.debug(
+                "after_tool_modifier: tool '%s' returned None (args=%s)",
+                tool_name,
+                args,
+            )
+        elif not isinstance(tool_response, dict):
+            logging.debug(
+                "after_tool_modifier: tool '%s' returned non-dict response: %s (args=%s)",
+                tool_name,
+                type(tool_response),
+                args,
+            )
+        else:
+            logging.debug(
+                "after_tool_modifier: tool '%s' response keys=%s (args=%s)",
+                tool_name,
+                list(tool_response.keys()),
+                args,
+            )
+    except Exception:
+        logging.exception("Error logging tool response in after_tool_modifier")
     # add typed data responses to the state
     ucp_response_keys = [UCP_CHECKOUT_KEY, "a2a.product_results"]
-    if UcpExtension.URI in extensions and any(
+    # guard: some tools may return None; ensure tool_response is a dict
+    if UcpExtension.URI in extensions and tool_response and isinstance(tool_response, dict) and any(
         key in tool_response for key in ucp_response_keys
     ):
         tool_context.state[ADK_LATEST_TOOL_RESULT] = tool_response
@@ -436,7 +497,8 @@ def modify_output_after_agent(
 
 root_agent = Agent(
     name="shopper_agent",
-    model="gemini-3-flash-preview",
+    model="gemini-2.5-flash-lite",
+#    model="llama-3.3-70b-versatile",
     description="Agent to help with shopping",
     instruction=(
         "You are a helpful agent who can help user with shopping actions such"

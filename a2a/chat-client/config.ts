@@ -39,6 +39,6 @@ export const appConfig = new AppProperties(
     'Business Agent',
     'Your personal shopping assistant.',
     '/images/logo.jpg',
-    'Hello, I am your Business Agent. How can I help you?',
+    'Hello, I am your Shopping Assistant! How can I help you?',
     'Shop with Business Agent',
 );
