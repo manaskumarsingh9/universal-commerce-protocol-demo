@@ -38,10 +38,6 @@ from .agent_executor import ADKAgentExecutor
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler())
-
 
 def make_sync(func):
     """Wrap an async function to run synchronously.

@@ -31,3 +31,26 @@ Example agent implementing A2A Extension for UCP
 3. Run `uv run business_agent`
 4. This starts the Cymbal Retail Agent on port 10999. You can verify by accessing
 the agent card at http://localhost:10999/.well-known/agent-card.json
+
+## Environment Variables
+
+The agent reads environment variables at startup (via `python-dotenv`). You
+can create a `.env` file in the `business_agent` directory, or export them in
+your shell/CI environment. A sample `.env.example` is provided next to the
+code; **never commit your real `.env` file**.
+
+Example `.env` contents:
+
+```ini
+# required by the Gemini model agent
+GOOGLE_API_KEY=your-google-api-key-here
+
+# Stripe configuration (test mode)
+# You can also set BUSINESS_AGENT_USE_STRIPE=1 but a key is needed for actual
+# API calls.
+STRIPE_API_KEY=sk_test_XXXXXXXXXXXXXXXXXXXX
+STRIPE_PUBLISHABLE_KEY=pk_test_XXXXXXXXXXXXXXXXXXXX  # optional for frontend
+```
+
+Keep the `.env` file out of version control (add it to `.gitignore` if needed).
+
