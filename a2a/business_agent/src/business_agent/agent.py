@@ -39,18 +39,52 @@ from .constants import (
     UCP_PAYMENT_DATA_KEY,
     UCP_RISK_SIGNALS_KEY,
 )
-from .payment_processor import MockPaymentProcessor
+from .payment_processor import MockPaymentProcessor, StripePaymentProcessor
+import os
+from dotenv import load_dotenv
 from .store import RetailStore
 from ucp_sdk.models.schemas.shopping.types.buyer import Buyer
 from ucp_sdk.models.schemas.shopping.types.postal_address import PostalAddress
 
+load_dotenv()
 
+# Debugging print statements to verify environment variables
+print(f"DEBUG (agent.py): GOOGLE_API_KEY loaded: {bool(os.getenv('GOOGLE_API_KEY'))}")
+print(f"DEBUG (agent.py): STRIPE_API_KEY loaded: {bool(os.getenv('STRIPE_API_KEY'))}")
+print(f"DEBUG (agent.py): BUSINESS_AGENT_USE_STRIPE loaded: {os.getenv('BUSINESS_AGENT_USE_STRIPE')}")
 store = RetailStore()
-mpp = MockPaymentProcessor()
+
+# Configure payment processor: prefer Stripe when configured, else use mock.
+stripe_api_key = os.getenv("STRIPE_API_KEY")
+use_stripe_flag = os.getenv("BUSINESS_AGENT_USE_STRIPE", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
+print(f"DEBUG: STRIPE_API_KEY (masked): {bool(stripe_api_key)}")
+print(f"DEBUG: BUSINESS_AGENT_USE_STRIPE: {use_stripe_flag}")
+
+if stripe_api_key or use_stripe_flag:
+    logging.info("if stripe_api_key or use_stripe_flag")
+    try:
+        if stripe_api_key:
+            mpp = StripePaymentProcessor(api_key=stripe_api_key)
+        else:
+            mpp = StripePaymentProcessor()
+        logging.info("Using StripePaymentProcessor for payment processing")
+    except Exception:
+        logging.exception(
+            "Failed to initialize StripePaymentProcessor; falling back to MockPaymentProcessor"
+        )
+        mpp = MockPaymentProcessor()
+else:
+    mpp = MockPaymentProcessor()
 
 # Configure logging
 LOG_DIR = Path(__file__).parent.parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
+print(f"Attempting to create/use log directory: {LOG_DIR.resolve()}")
 LOG_FILE = LOG_DIR / "agent.log"
 
 # Set up root logger to handle all messages
@@ -62,7 +96,7 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 console_formatter = logging.Formatter("%(levelname)s: %(message)s")
 console_handler.setFormatter(console_formatter)
-root_logger.addHandler(console_handler)
+#root_logger.addHandler(console_handler)
 
 # File handler (for all DEBUG messages to a rotating file)
 file_handler = RotatingFileHandler(

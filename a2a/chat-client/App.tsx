@@ -374,11 +374,11 @@ function App() {
     if (isLoading) return;
     // END_CHANGE
 
-    // Check if this is the initial message and if it contains instruction to skip detail confirmation.
+    // Check if the message contains instruction to skip detail confirmation.
     // This flag will be used by handleStartPayment to bypass the confirmation prompt.
     if (typeof messageContent === "string" &&
-        (messageContent.toLowerCase().includes("use the default values"))
-      ) {
+        ((messageContent.toLowerCase().includes("use the default"))
+         || (messageContent.toLowerCase().includes("my usual")))) {
       setSkipDetailConfirmation(true);
     }
 
@@ -391,7 +391,7 @@ function App() {
           if (parsedContent.action === "add_to_checkout") {
             userActionText = `One item added to cart (ID: ${parsedContent.product_id}).`;
           } else if (parsedContent.action === "start_payment") {
-            userActionText = "Initiating payment process.";
+            userActionText = "Initiating payment process through Stripe.";
           }
         } catch (e) {
           // Not a valid JSON string or action not found, keep default

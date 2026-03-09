@@ -27,7 +27,7 @@ export class CredentialProviderProxy {
     return {
       'payment_method_aliases': [
         {
-          'id': 'instr_1',
+          'id': 'Amex_Card',
           'type': 'card',
           'brand': 'amex',
           'last_digits': '1111',
