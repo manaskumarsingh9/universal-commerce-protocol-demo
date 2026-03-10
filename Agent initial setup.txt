@@ -1,0 +1,203 @@
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> # Show what your PATH looks like in this shell
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $env:PATH -split ';' | Where-Object { $_ -match 'Python|WindowsApps|Roaming' }
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server>
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> # Is there any python.exe reachable on PATH?
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> where.exe python
+INFO: Could not find files for the given pattern(s).
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server>
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> # Is the WindowsApps shim present?
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WindowsApps\python*.exe" -ErrorAction SilentlyContinue
+
+
+    Directory: C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---l          2/5/2026   6:59 PM              0 python.exe
+-a---l          2/5/2026   6:59 PM              0 python3.13.exe
+-a---l          2/5/2026   6:59 PM              0 python3.exe
+-a---l          2/5/2026   6:59 PM              0 pythonw.exe
+-a---l          2/5/2026   6:59 PM              0 pythonw3.13.exe
+-a---l          2/5/2026   6:59 PM              0 pythonw3.exe
+
+
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server>
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> # If uv was user-installed earlier, is its script present?
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> Get-ChildItem "$env:APPDATA\Python\Python313\Scripts\uv*.exe" -ErrorAction SilentlyContinue
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> & "C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe" --version
+Python 3.13.12
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> Test-Path "C:\Users\manas.singh\AppData\Local\Programs\Python\Python313\python.exe"
+False
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $PY = "C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe"
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> & $PY --version
+Python 3.13.12
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> & $PY -m pip install --user uv
+Collecting uv
+  Downloading uv-0.10.2-py3-none-win_amd64.whl.metadata (12 kB)
+Downloading uv-0.10.2-py3-none-win_amd64.whl (23.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23.6/23.6 MB 3.1 MB/s  0:00:07
+Installing collected packages: uv
+Successfully installed uv-0.10.2
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe -m pip install --upgrade pip
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> & $PY -m uv --version
+uv 0.10.2 (a788db7e5 2026-02-10)
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server>
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> New-Item -ItemType Directory -Force -Path "D:\uvcache" | Out-Null
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> setx UV_CACHE_DIR "D:\uvcache"
+
+SUCCESS: Specified value was saved.
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> # New PowerShell window from here
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $PY = "C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe"
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server>
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> cd D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent>
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> # Clean venv if present (safe)
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> Remove-Item -Recurse -Force .venv -ErrorAction SilentlyContinue
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent>
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> # Sync dependencies into .venv
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> & $PY -m uv sync
+Using CPython 3.13.12 interpreter at: C:\Users\manas.singh\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe
+Creating virtual environment at: .venv
+Resolved 119 packages in 15ms
+Installed 117 packages in 8.18s
+ + a2a-sdk==0.3.22
+ + aiosqlite==0.22.1
+ + alembic==1.18.0
+ + annotated-doc==0.0.4
+ + annotated-types==0.7.0
+ + anyio==4.12.1
+ + attrs==25.4.0
+ + authlib==1.6.6
+ + business-agent==0.1.0 (from file:///D:/Growth/workspace/UCP-Demo/samples/a2a/business_agent)
+ + certifi==2026.1.4
+ + cffi==2.0.0
+ + charset-normalizer==3.4.4
+ + click==8.3.1
+ + cloudpickle==3.1.2
+ + colorama==0.4.6
+ + cryptography==46.0.3
+ + distro==1.9.0
+ + dnspython==2.8.0
+ + docstring-parser==0.17.0
+ + email-validator==2.3.0
+ + fastapi==0.123.10
+ + google-adk==1.22.1
+ + google-api-core==2.29.0
+ + google-api-python-client==2.188.0
+ + google-auth==2.47.0
+ + google-auth-httplib2==0.3.0
+ + google-cloud-aiplatform==1.133.0
+ + google-cloud-appengine-logging==1.8.0
+ + google-cloud-audit-log==0.4.0
+ + google-cloud-bigquery==3.40.0
+ + google-cloud-bigquery-storage==2.36.0
+ + google-cloud-bigtable==2.35.0
+ + google-cloud-core==2.5.0
+ + google-cloud-discoveryengine==0.13.12
+ + google-cloud-logging==3.13.0
+ + google-cloud-monitoring==2.28.0
+ + google-cloud-pubsub==2.34.0
+ + google-cloud-resource-manager==1.15.0
+ + google-cloud-secret-manager==2.26.0
+ + google-cloud-spanner==3.61.0
+ + google-cloud-speech==2.35.0
+ + google-cloud-storage==3.8.0
+ + google-cloud-trace==1.17.0
+ + google-crc32c==1.8.0
+ + google-genai==1.57.0
+ + google-resumable-media==2.8.0
+ + googleapis-common-protos==1.72.0
+ + graphviz==0.21
+ + greenlet==3.3.0
+ + grpc-google-iam-v1==0.14.3
+ + grpc-interceptor==0.15.4
+ + grpcio==1.76.0
+ + grpcio-status==1.76.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httplib2==0.31.1
+ + httpx==0.28.1
+ + httpx-sse==0.4.3
+ + idna==3.11
+ + importlib-metadata==8.7.1
+ + jsonschema==4.26.0
+ + jsonschema-specifications==2025.9.1
+ + mako==1.3.10
+ + markupsafe==3.0.3
+ + mcp==1.25.0
+ + mmh3==5.2.0
+ + opentelemetry-api==1.37.0
+ + opentelemetry-exporter-gcp-logging==1.11.0a0
+ + opentelemetry-exporter-gcp-monitoring==1.11.0a0
+ + opentelemetry-exporter-gcp-trace==1.11.0
+ + opentelemetry-exporter-otlp-proto-common==1.37.0
+ + opentelemetry-exporter-otlp-proto-http==1.37.0
+ + opentelemetry-proto==1.37.0
+ + opentelemetry-resourcedetector-gcp==1.11.0a0
+ + opentelemetry-sdk==1.37.0
+ + opentelemetry-semantic-conventions==0.58b0
+ + packaging==25.0
+ + proto-plus==1.27.0
+ + protobuf==6.33.4
+ + pyarrow==22.0.0
+ + pyasn1==0.6.1
+ + pyasn1-modules==0.4.2
+ + pycparser==2.23
+ + pydantic==2.12.5
+ + pydantic-core==2.41.5
+ + pydantic-settings==2.12.0
+ + pyjwt==2.10.1
+ + pyparsing==3.3.1
+ + python-dateutil==2.9.0.post0
+ + python-dotenv==1.2.1
+ + python-multipart==0.0.21
+ + pywin32==311
+ + pyyaml==6.0.3
+ + referencing==0.37.0
+ + requests==2.32.5
+ + rpds-py==0.30.0
+ + rsa==4.9.1
+ + ruff==0.14.11
+ + six==1.17.0
+ + sniffio==1.3.1
+ + sqlalchemy==2.0.45
+ + sqlalchemy-spanner==1.17.2
+ + sqlparse==0.5.5
+ + sse-starlette==3.1.2
+ + starlette==0.50.0
+ + tenacity==9.1.2
+ + typing-extensions==4.15.0
+ + typing-inspection==0.4.2
+ + tzdata==2025.3
+ + tzlocal==5.3.1
+ + ucp-sdk==0.1.0
+ + uritemplate==4.2.0
+ + urllib3==2.6.3
+ + uvicorn==0.40.0
+ + watchdog==6.0.0
+ + websockets==15.0.1
+ + zipp==3.23.0
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent>
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> # Prepare env and run the agent
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> Copy-Item env.example .env -ErrorAction SilentlyContinue
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> notepad .env   # set: GOOGLE_API_KEY=your_gemini_key
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent>
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\business_agent> & $PY -m uv run business_agent
+
+
+Another Terminal
+
+PS D:\Growth\workspace\UCP-Demo\samples\a2a\chat-client> npm run dev
+
+> simple-chat@0.0.1 dev
+> vite
+
+
+  VITE v6.4.1  ready in 4433 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.29.75:3000/
+  ➜  press h + enter to show help

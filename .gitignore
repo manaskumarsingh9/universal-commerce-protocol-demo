@@ -1,0 +1,24 @@
+**/__pycache__
+.pytest_cache
+.ruff_cache
+uv.lock
+.venv
+**/node_modules
+# videos & media
+*.mp4
+*.mov
+*.avi
+
+# logs
+*.log
+logs/
+**/logs/
+
+# env & secrets
+.env
+**/.env
+
+# editor/system
+.vscode/
+.DS_Store
+Thumbs.db

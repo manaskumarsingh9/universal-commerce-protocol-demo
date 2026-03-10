@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/rest/python/server/server.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--products_db_path=D:/Growth/workspace/UCP-Demo/data/ucp_test/products.db",
+                "--transactions_db_path=D:/Growth/workspace/UCP-Demo/data/ucp_test/transactions.db",
+                "--port=8182"
+            ]
+        }
+    ]
+}
