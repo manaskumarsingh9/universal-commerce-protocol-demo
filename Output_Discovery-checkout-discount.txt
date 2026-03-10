@@ -1,0 +1,445 @@
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> curl.exe http://localhost:8182/.well-known/ucp | python -m json.tool
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  2528  100  2528    0     0   5172      0 --:--:-- --:--:-- --:--:--  5169
+{
+    "ucp": {
+        "version": "2026-01-11",
+        "services": {
+            "dev.ucp.shopping": {
+                "version": "2026-01-11",
+                "spec": "https://ucp.dev/specification/reference",
+                "rest": {
+                    "schema": "https://ucp.dev/services/shopping/rest.openapi.json",
+                    "endpoint": "http://localhost:8182/"
+                },
+                "mcp": null,
+                "a2a": null,
+                "embedded": null
+            }
+        },
+        "capabilities": [
+            {
+                "name": "dev.ucp.shopping.checkout",
+                "version": "2026-01-11",
+                "spec": "https://ucp.dev/specification/checkout",
+                "schema": "https://ucp.dev/schemas/shopping/checkout.json",
+                "extends": null,
+                "config": null
+            },
+            {
+                "name": "dev.ucp.shopping.order",
+                "version": "2026-01-11",
+                "spec": "https://ucp.dev/specification/order",
+                "schema": "https://ucp.dev/schemas/shopping/order.json",
+                "extends": null,
+                "config": null
+            },
+            {
+                "name": "dev.ucp.shopping.discount",
+                "version": "2026-01-11",
+                "spec": "https://ucp.dev/specification/discount",
+                "schema": "https://ucp.dev/schemas/shopping/discount.json",
+                "extends": "dev.ucp.shopping.checkout",
+                "config": null
+            },
+            {
+                "name": "dev.ucp.shopping.fulfillment",
+                "version": "2026-01-11",
+                "spec": "https://ucp.dev/specification/fulfillment",
+                "schema": "https://ucp.dev/schemas/shopping/fulfillment.json",
+                "extends": "dev.ucp.shopping.checkout",
+                "config": null
+            },
+            {
+                "name": "dev.ucp.shopping.buyer_consent",
+                "version": "2026-01-11",
+                "spec": "https://ucp.dev/specification/buyer-consent",
+                "schema": "https://ucp.dev/schemas/shopping/buyer_consent.json",
+                "extends": "dev.ucp.shopping.checkout",
+                "config": null
+            }
+        ]
+    },
+    "payment": {
+        "handlers": [
+            {
+                "id": "shop_pay",
+                "name": "dev.shopify.shop_pay",
+                "version": "2026-01-11",
+                "spec": "https://shopify.dev/docs/agents/checkout/shop-pay-handler",
+                "config_schema": "https://shopify.dev/ucp/shop-pay-handler/2026-01-11/config.json",
+                "instrument_schemas": [
+                    "https://shopify.dev/ucp/shop-pay-handler/2026-01-11/instrument.json"
+                ],
+                "config": {
+                    "shop_id": "0f891bd7-3628-4001-9edf-20f7aa98930f"
+                }
+            },
+            {
+                "id": "google_pay",
+                "name": "com.google.pay",
+                "version": "2026-01-11",
+                "spec": "https://pay.google.com/gp/p/ucp/2026-01-11/",
+                "config_schema": "https://pay.google.com/gp/p/ucp/2026-01-11/schemas/config.json",
+                "instrument_schemas": [
+                    "https://pay.google.com/gp/p/ucp/2026-01-11/schemas/card_payment_instrument.json"
+                ],
+                "config": {
+                    "api_version": 2,
+                    "api_version_minor": 0,
+                    "merchant_info": {
+                        "merchant_name": "Flower Shop",
+                        "merchant_id": "TEST",
+                        "merchant_origin": "localhost"
+                    },
+                    "allowed_payment_methods": [
+                        {
+                            "type": "CARD",
+                            "parameters": {
+                                "allowedAuthMethods": [
+                                    "PAN_ONLY",
+                                    "CRYPTOGRAM_3DS"
+                                ],
+                                "allowedCardNetworks": [
+                                    "VISA",
+                                    "MASTERCARD"
+                                ]
+                            },
+                            "tokenization_specification": [
+                                {
+                                    "type": "PAYMENT_GATEWAY",
+                                    "parameters": [
+                                        {
+                                            "gateway": "example",
+                                            "gatewayMerchantId": "exampleGatewayMerchantId"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "signing_keys": null
+}
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $body = @'
+{
+  "line_items": [
+    {
+      "item": {
+        "id": "bouquet_roses",
+        "title": "Red Rose"
+      },
+      "quantity": 1
+    }
+  ],
+  "buyer": {
+    "full_name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "currency": "USD",
+  "payment": {
+    "instruments": [],
+    "handlers": [
+      {
+        "id": "shop_pay",
+        "name": "com.shopify.shop_pay",
+        "version": "2026-01-11",
+        "spec": "https://shopify.dev/ucp/handlers/shop_pay",
+        "config_schema": "https://shopify.dev/ucp/handlers/shop_pay/config.json",
+        "instrument_schemas": [
+          "https://shopify.dev/ucp/handlers/shop_pay/instrument.json"
+        ],
+        "config": {
+          "shop_id": "8f1947e7-0d98-4d5c-a65a-2b622ef07239"
+        }
+      },
+      {
+        "id": "google_pay",
+        "name": "google.pay",
+        "version": "2026-01-11",
+        "spec": "https://example.com/spec",
+        "config_schema": "https://example.com/schema",
+        "instrument_schemas": [
+          "https://ucp.dev/schemas/shopping/types/gpay_card_payment_instrument.json"
+        ],
+        "config": {
+          "api_version": 2,
+          "api_version_minor": 0,
+          "merchant_info": {
+            "merchant_name": "Flower Shop",
+            "merchant_id": "TEST",
+            "merchant_origin": "localhost"
+          },
+          "allowed_payment_methods": [
+            {
+              "type": "CARD",
+              "parameters": {
+                "allowedAuthMethods": [
+                  "PAN_ONLY",
+                  "CRYPTOGRAM_3DS"
+                ],
+                "allowedCardNetworks": [
+                  "VISA",
+                  "MASTERCARD"
+                ]
+              },
+              "tokenization_specification": [
+                {
+                  "type": "PAYMENT_GATEWAY",
+                  "parameters": [
+                    {
+                      "gateway": "example",
+                      "gatewayMerchantId": "exampleGatewayMerchantId"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+'@
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $r = Invoke-RestMethod `
+  -Uri "http://localhost:8182/checkout-sessions" `
+  -Method POST `
+  -Headers @{
+    "UCP-Agent" = 'profile="https://agent.example/profile"'
+    "request-signature" = "test"
+    "idempotency-key" = "a8ef6b00-b947-4eab-aa27-2e43bc93177b"
+    "request-id" = "31530b95-2350-416f-a974-9429e0ff0663"
+  } `
+  -ContentType "application/json" `
+  -Body $body
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $r | ConvertTo-Json -Depth 50 | Out-String -Width 4096
+{
+    "ucp":  {
+                "version":  "2026-01-11",
+                "capabilities":  [
+                                     {
+                                         "name":  "dev.ucp.shopping.checkout",
+                                         "version":  "2026-01-11",
+                                         "spec":  null,
+                                         "schema":  null,
+                                         "extends":  null,
+                                         "config":  null
+                                     }
+                                 ]
+            },
+    "id":  "5d1f0e41-6b8f-4c65-897f-99573c41e595",
+    "line_items":  [
+                       {
+                           "id":  "aecf6b95-22a8-46bc-9cf7-02864965a3e2",
+                           "item":  {
+                                        "id":  "bouquet_roses",
+                                        "title":  "Bouquet of Red Roses",
+                                        "price":  3500,
+                                        "image_url":  null
+                                    },
+                           "quantity":  1,
+                           "totals":  [
+                                          {
+                                              "type":  "subtotal",
+                                              "display_text":  null,
+                                              "amount":  3500
+                                          },
+                                          {
+                                              "type":  "total",
+                                              "display_text":  null,
+                                              "amount":  3500
+                                          }
+                                      ],
+                           "parent_id":  null
+                       }
+                   ],
+    "buyer":  {
+                  "first_name":  null,
+                  "last_name":  null,
+                  "full_name":  "John Doe",
+                  "email":  "john.doe@example.com",
+                  "phone_number":  null,
+                  "consent":  null
+              },
+    "status":  "ready_for_complete",
+    "currency":  "USD",
+    "totals":  [
+                   {
+                       "type":  "subtotal",
+                       "display_text":  null,
+                       "amount":  3500
+                   },
+                   {
+                       "type":  "total",
+                       "display_text":  null,
+                       "amount":  3500
+                   }
+               ],
+    "messages":  null,
+    "links":  [
+
+              ],
+    "expires_at":  null,
+    "continue_url":  null,
+    "payment":  {
+                    "handlers":  [
+
+                                 ],
+                    "selected_instrument_id":  null,
+                    "instruments":  [
+
+                                    ]
+                },
+    "order":  null,
+    "ap2":  null,
+    "discounts":  {
+                      "codes":  null,
+                      "applied":  null
+                  },
+    "fulfillment":  null,
+    "platform":  null
+}
+
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $CHECKOUT_ID = "5d1f0e41-6b8f-4c65-897f-99573c41e595"
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server>
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> # Request body as a here-string
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $body = @'
+{
+  "id": "5d1f0e41-6b8f-4c65-897f-99573c41e595",
+  "line_items": [
+    {
+      "id": "64df6244-9102-4a96-be07-0846140289d3",
+      "item": { "id": "bouquet_roses", "title": "Red Rose" },
+      "quantity": 1
+    }
+  ],
+  "currency": "USD",
+  "payment": { "instruments": [], "handlers": [] },
+  "discounts": { "codes": ["10OFF"] }
+}
+'@
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $r = Invoke-RestMethod `
+  -Uri "http://localhost:8182/checkout-sessions/$CHECKOUT_ID" `
+  -Method PUT `
+  -Headers @{
+    "UCP-Agent" = 'profile="https://agent.example/profile"'
+    "request-signature" = "test"
+    "idempotency-key" = "90ea35bd-636a-40ef-8f20-cd67c4c6f7e9"
+    "request-id" = "c6b6f52c-faa7-46c5-a4c5-7a6ed7cc5ad9"
+  } `
+  -ContentType "application/json" `
+  -Body $body
+PS D:\Growth\workspace\UCP-Demo\samples\rest\python\server> $r | ConvertTo-Json -Depth 50 | Out-String -Width 4096
+{
+    "ucp":  {
+                "version":  "2026-01-11",
+                "capabilities":  [
+                                     {
+                                         "name":  "dev.ucp.shopping.checkout",
+                                         "version":  "2026-01-11",
+                                         "spec":  null,
+                                         "schema":  null,
+                                         "extends":  null,
+                                         "config":  null
+                                     }
+                                 ]
+            },
+    "id":  "5d1f0e41-6b8f-4c65-897f-99573c41e595",
+    "line_items":  [
+                       {
+                           "id":  "64df6244-9102-4a96-be07-0846140289d3",
+                           "item":  {
+                                        "id":  "bouquet_roses",
+                                        "title":  "Bouquet of Red Roses",
+                                        "price":  3500,
+                                        "image_url":  null
+                                    },
+                           "quantity":  1,
+                           "totals":  [
+                                          {
+                                              "type":  "subtotal",
+                                              "display_text":  null,
+                                              "amount":  3500
+                                          },
+                                          {
+                                              "type":  "total",
+                                              "display_text":  null,
+                                              "amount":  3500
+                                          }
+                                      ],
+                           "parent_id":  null
+                       }
+                   ],
+    "buyer":  {
+                  "first_name":  null,
+                  "last_name":  null,
+                  "full_name":  "John Doe",
+                  "email":  "john.doe@example.com",
+                  "phone_number":  null,
+                  "consent":  null
+              },
+    "status":  "ready_for_complete",
+    "currency":  "USD",
+    "totals":  [
+                   {
+                       "type":  "subtotal",
+                       "display_text":  null,
+                       "amount":  3500
+                   },
+                   {
+                       "type":  "discount",
+                       "display_text":  null,
+                       "amount":  350
+                   },
+                   {
+                       "type":  "total",
+                       "display_text":  null,
+                       "amount":  3150
+                   }
+               ],
+    "messages":  null,
+    "links":  [
+
+              ],
+    "expires_at":  null,
+    "continue_url":  null,
+    "payment":  {
+                    "handlers":  [
+
+                                 ],
+                    "selected_instrument_id":  null,
+                    "instruments":  [
+
+                                    ]
+                },
+    "order":  null,
+    "ap2":  null,
+    "discounts":  {
+                      "codes":  [
+                                    "10OFF"
+                                ],
+                      "applied":  [
+                                      {
+                                          "code":  "10OFF",
+                                          "title":  "10% Off",
+                                          "amount":  350,
+                                          "automatic":  false,
+                                          "method":  null,
+                                          "priority":  null,
+                                          "allocations":  [
+                                                              {
+                                                                  "path":  "$.totals[?(@.type==\u0027subtotal\u0027)]",
+                                                                  "amount":  350
+                                                              }
+                                                          ]
+                                      }
+                                  ]
+                  },
+    "fulfillment":  null,
+    "platform":  null
+}
